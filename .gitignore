@@ -262,3 +262,24 @@ local_settings.py
 
 .env
 db.sqlite3
+
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+media/
+
+# Environment
+.env
+.venv
+env/
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.vscode/
+.idea/
