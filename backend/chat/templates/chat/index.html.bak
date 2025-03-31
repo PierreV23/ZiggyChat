@@ -1,0 +1,74 @@
+<!-- backend/chat/templates/chat/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat App</title>
+    <!-- backend/chat/templates/chat/index.html -->
+    {% load static %}
+    <!-- <script type="module" src="{% static 'chat/js/api.js' %}"></script> -->
+    <script type="module">
+        import * as api from "{% static 'chat/js/api.js' %}";
+        window.App = window.App || {};
+        window.App.api = api;
+    </script>
+    <script type="module">
+        import * as ws from "{% static 'chat/js/ws.js' %}";
+        window.App = window.App || {};
+        window.App.ws = ws;
+    </script>
+    <script type="module">
+        import * as cryp from "{% static 'chat/js/cryp.js' %}";
+        window.App = window.App || {};
+        window.App.cryp = cryp;
+    </script>
+</head>
+<body>
+    <table>
+        <tr>
+            <div id="currTag"></div>
+            <div id="currToken"></div>
+            <td><input id="tag" placeholder="Tag"></td>
+            <td><input id="pass" placeholder="Pass"></td>
+            <td><button id="login">login</button></td>
+            <!-- <td><input id="sender" placeholder="Sender"></td> -->
+            <td><input id="receiver" placeholder="Receiver"></td>
+            <td><input id="content" placeholder="Text"></td>
+            <td><button id="receive">Receive</button=></td>
+            <td><button id="send">Send</button></td>
+            <td><button onclick="connectWebSocket()">WebSocket</button></td>
+        </tr>
+        <tr>
+            <td colspan="3"><textarea id="messageBox" rows="10" cols="50" readonly></textarea></td>
+        </tr>
+    </table>
+
+    <script>
+        
+
+        async function main() {
+            document.getElementById('login').addEventListener('click', async function() {
+                const tag = document.getElementById('tag').value;
+                const pass = document.getElementById('pass').value;
+                const { token, decryptedPrivateKey } = await window.App.api.loginUser(tag, pass);
+                document.getElementById('currTag').textContent = tag;
+                document.getElementById('currToken').textContent = token;
+                localStorage.setItem("tag", tag)
+                localStorage.setItem("token", token)
+            });
+            document.getElementById('send').addEventListener('click', async function() {
+                const sender = localStorage.getItem("tag");
+                const token = localStorage.getItem("token");
+                const receiver = document.getElementById('receiver').value;
+                const content = document.getElementById('content').value;
+
+                window.App.api.sendMessage(sender, receiver, content, token)
+            })
+
+            // console.log("Hey");
+            // const { token, decryptedPrivateKey } = await window.App.api.loginUser("kees", "pass");
+            // console.log(token)
+        }
+        window.onload = (e) => {main()};
+    </script>
+</body>
+</html>

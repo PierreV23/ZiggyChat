@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        // Inline script that runs immediately
+        document.documentElement.style.visibility = 'hidden';
+        (function() {
+          const darkMode = localStorage.getItem('darkMode') === 'enabled';
+          if (darkMode) {
+            document.documentElement.classList.add('dark-mode');
+          }
+          setTimeout(function() {
+            document.documentElement.style.visibility = '';
+          }, 100);
+        })();
+      </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - ZiggyChat</title>
+    {% load static %}
+    <!-- <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}"></style> -->
+    <link rel="stylesheet" href="{% static 'chat/css/register.css' %}"></style>
+    <script type="module">
+        import * as api from "{% static 'chat/js/api.js' %}";
+        window.App = window.App || {};
+        window.App.api = api;
+    </script>
+    <script type="module">
+        import * as cryp from "{% static 'chat/js/cryp.js' %}";
+        window.App = window.App || {};
+        window.App.cryp = cryp;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="margin-top: 20px;">
+            <button class="theme-toggle" aria-label="Toggle dark mode">🌓</button>
+            <button onclick="location.href = '/login/'" class="btn-register" style="width: 50%; background-color: grey">Login instead</button>
+        </div>
+        
+        <div class="register-form">
+            <div class="header">
+                <h1>Create Account</h1>
+            </div>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="tag">Username (unique tag)</label>
+                    <input type="text" id="tag" name="tag" class="form-control" placeholder="Enter a unique username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nickname">Nickname (optional)</label>
+                    <input type="text" id="nickname" name="nickname" class="form-control" placeholder="Enter a display name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+                
+                <button type="submit" class="btn-register">Create Account</button>
+            </form>
+            
+            <div id="errorContainer" class="error-container">
+                <!-- Error messages will appear here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Function to set theme based on localStorage
+        function setTheme() {
+            // Check if dark mode is enabled in localStorage
+            const darkMode = localStorage.getItem('darkMode') === 'enabled';
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            // Apply theme based on localStorage value
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌓';
+            }
+        }
+        
+        // Function to toggle theme
+        function toggleTheme() {
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                // Switch to light mode
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'disabled');
+                themeToggle.textContent = '🌓';
+            } else {
+                // Switch to dark mode
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+                themeToggle.textContent = '☀️';
+            }
+        }
+        
+        // Function to display error messages
+        function showError(message) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.textContent = message;
+            errorContainer.classList.add('show');
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Apply saved theme preference
+            setTheme();
+            
+            // Add event listeners
+            document.querySelector('.theme-toggle').addEventListener('click', toggleTheme);
+            
+            // Form submission handler
+            document.getElementById('registerForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                
+                const tag = document.getElementById('tag').value;
+                const password = document.getElementById('password').value;
+                const nick = document.getElementById('nickname').value;
+                
+                // Example validation
+                if (tag.length < 1) {
+                    showError('Username must be between 1 and 21 characters long');
+                    return;
+                }
+
+                if (nick !== "" && nick.length > 21) {
+                    showError('Nickname must be at most 21 characters long');
+                    return;
+                }
+                
+                if (password.length < 4) {
+                    showError('Password must be at least 6 characters long');
+                    return;
+                }
+                
+                // If validation passes, you would typically submit the form data
+                // For demo purposes, let's just show a success message
+                // showError('Account created successfully! Redirecting to login...');
+                
+                const ret = await window.App.api.registerUser(tag, password, nick ? nick : null);
+                console.log(ret)
+                if (ret.status === "error") {
+                    showError(ret.message)
+                    return;
+                } else {
+                    document.getElementById('errorContainer').style.backgroundColor = '#e8f5e9';
+                    document.getElementById('errorContainer').style.borderColor = '#c8e6c9';
+                    document.getElementById('errorContainer').style.color = '#2e7d32';
+                    showError(ret.message)
+                    setTimeout(() => window.location.href = '/login/', 2000); 
+                    return;
+                }
+                // In a real app, you would redirect or do something else
+                // setTimeout(() => window.location.href = 'login.html', 2000);
+            });
+        });
+    </script>
+</body>
+</html>

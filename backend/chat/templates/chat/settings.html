@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script>
+    // Inline script that runs immediately
+    document.documentElement.style.visibility = 'hidden';
+    (function() {
+      const darkMode = localStorage.getItem('darkMode') === 'enabled';
+      if (darkMode) {
+        document.documentElement.classList.add('dark-mode');
+      }
+      setTimeout(function() {
+        document.documentElement.style.visibility = '';
+      }, 100);
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: #fff;
+            color: #333;
+        }
+
+        .top-container {
+            display: flex;
+            height: 60px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .toggle-container {
+            width: 250px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .back-button {
+            cursor: pointer;
+            font-size: 18px;
+            color: #444;
+        }
+
+        .content-container {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .settings-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .section {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .profile-pic-container {
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #ddd;
+            position: relative;
+        }
+
+        #preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .file-input-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .btn {
+            background-color: #0084ff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background-color: #0066cc;
+        }
+
+        .btn-secondary {
+            background-color: #f1f1f1;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background-color: #ddd;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Toggle switch styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #0084ff;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .toggle-container-setting {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .toggle-label {
+            font-weight: bold;
+        }
+
+        /* Stats table */
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stats-table th, .stats-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .stats-table th {
+            font-weight: bold;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #1f1f1f;
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .top-container {
+            background-color: #2c2c2c;
+            border-bottom-color: #444;
+        }
+
+        body.dark-mode .section {
+            background-color: #2c2c2c;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        body.dark-mode .btn-secondary {
+            background-color: #3c3c3c;
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .btn-secondary:hover {
+            background-color: #4c4c4c;
+        }
+
+        body.dark-mode .profile-pic-container {
+            border-color: #444;
+        }
+
+        body.dark-mode .success {
+            background-color: #1e3a2b;
+            color: #8fd9a8;
+        }
+
+        body.dark-mode .error {
+            background-color: #3a1e1e;
+            color: #d98f8f;
+        }
+
+        body.dark-mode .back-button {
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .stats-table th, body.dark-mode .stats-table td {
+            border-bottom-color: #444;
+        }
+    </style>
+    {% load static %}
+    <script type="module">
+        import * as api from "{% static 'chat/js/api.js' %}";
+        window.App = window.App || {};
+        window.App.api = api;
+    </script>    
+</head>
+<body>
+    <div class="top-container">
+        <div class="toggle-container">
+            <div class="theme-toggle">🌓</div>
+            <div class="back-button" onclick="window.location.href='/chat'">← Back to Chat</div>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <h1 class="settings-header">Settings</h1>
+        
+        <div class="section">
+            <h2>User Preferences</h2>
+            <div class="toggle-container-setting">
+                <span class="toggle-label">Hide my profile picture</span>
+                <label class="switch">
+                    <input type="checkbox" id="dummyToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Profile Picture</h2>
+            <div class="profile-pic-container">
+                <img id="preview" src="/api/user_image/a/" alt="Profile Picture">
+            </div>
+            
+            <div class="file-input-container">
+                <input type="file" id="file-input" accept="image/*">
+                <button class="btn btn-secondary" id="select-file">Select Image</button>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" id="upload-btn">Upload Picture</button>
+            </div>
+            
+            <div id="status-message" class="status" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>User Statistics</h2>
+            <table class="stats-table">
+                <tr>
+                    <th>Contacts</th>
+                    <td id="contacts-count">0</td>
+                </tr>
+                <tr>
+                    <th>Messages Sent</th>
+                    <td id="messages-sent">0</td>
+                </tr>
+                <tr>
+                    <th>Messages Received</th>
+                    <td id="messages-received">0</td>
+                </tr>
+                <tr>
+                    <th>Messages Total</th>
+                    <td id="messages-total">0</td>
+                </tr>
+            </table>
+        </div>
+        <div class="section">
+            <canvas id="messageStatsChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        function setTheme() {
+            // Check if dark mode is enabled in localStorage
+            const darkMode = localStorage.getItem('darkMode') === 'enabled';
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            // Apply theme based on localStorage value
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌓';
+            }
+        }
+        setTheme();
+        
+        // Function to toggle theme
+        function toggleTheme() {
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                // Switch to light mode
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'disabled');
+                themeToggle.textContent = '🌓';
+            } else {
+                // Switch to dark mode
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+                themeToggle.textContent = '☀️';
+            }
+        }
+        
+        // Profile picture functionality
+        const fileInput = document.getElementById('file-input');
+        const selectFileBtn = document.getElementById('select-file');
+        const uploadBtn = document.getElementById('upload-btn');
+        const preview = document.getElementById('preview');
+        const statusMessage = document.getElementById('status-message');
+        const dummyToggle = document.getElementById('dummyToggle');
+        
+        // Set initial profile picture
+        window.addEventListener('load', async function() {
+            const tag = localStorage.getItem("tag");
+            const token = localStorage.getItem("token");
+
+            const r = await window.App.api.getSelf(tag, token);
+            // console.log(r)
+            // console.log(r.is_hidden)
+
+            dummyToggle.checked = r.is_hidden
+
+            if (tag) {
+                preview.src = `/api/user_image/${tag}/?t=${new Date().getTime()}`;
+            }
+            
+
+            
+            // Set initial theme
+            setTheme();
+
+            const re = await fetch(`/api/user_stats/${localStorage.getItem("tag")}/${localStorage.getItem("token")}/`)
+            const j = await re.json();
+            document.getElementById("contacts-count").innerHTML = j.statistics.unique_contacts
+            document.getElementById("messages-sent").innerHTML = j.statistics.messages_sent
+            document.getElementById("messages-received").innerHTML = j.statistics.messages_received
+            document.getElementById("messages-total").innerHTML = j.statistics.total_messages
+
+            const messagesData = {
+                sent: j.statistics.messages_sent,     // Replace with actual messages_sent value
+                received: j.statistics.messages_received  // Replace with actual messages_received value
+            };
+
+            // Create a simple bar chart
+            const ctx = document.getElementById('messageStatsChart').getContext('2d');
+            const messageStatsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                labels: ['Sent', 'Received'],
+                datasets: [{
+                    label: 'Message Count',
+                    data: [messagesData.sent, messagesData.received],
+                    backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',  // Blue for sent
+                    'rgba(75, 192, 192, 0.7)'   // Green for received
+                    ],
+                    borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+                },
+                options: {
+                responsive: true,
+                scales: {
+                    y: {
+                    beginAtZero: true
+                    }
+                }
+                }
+            });
+
+        });
+        
+        // Event listeners
+        selectFileBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                };
+                
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+        
+        uploadBtn.addEventListener('click', () => {
+            if (!fileInput.files || !fileInput.files[0]) {
+                showStatus('Please select an image first', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64Image = e.target.result;
+                uploadProfilePicture(base64Image);
+            };
+            
+            reader.readAsDataURL(fileInput.files[0]);
+        });
+        
+        document.querySelector('.theme-toggle').addEventListener('click', toggleTheme);
+        
+        dummyToggle.addEventListener('change', async function() {
+            fetch(`/api/set_hidden/${localStorage.getItem("tag")}/${dummyToggle.checked}/${localStorage.getItem("token")}/`)
+        });
+        
+        // Function to upload profile picture
+        function uploadProfilePicture(imageData) {
+            // Show loading status
+            showStatus('Uploading...', '');
+            const tag = localStorage.getItem("tag");
+            const token = localStorage.getItem("token");
+            
+            fetch('/api/update_profile_picture/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tag: tag,
+                    token: token,
+                    image: imageData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showStatus(data.message, 'success');
+                    // Force reload the image to prevent caching
+                    preview.src = `/api/user_image/${tag}/?t=${new Date().getTime()}`;
+                } else {
+                    showStatus(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('An error occurred: ' + error, 'error');
+            });
+        }
+        
+        // Function to show status messages
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.style.display = 'block';
+            statusMessage.className = 'status';
+            
+            if (type) {
+                statusMessage.classList.add(type);
+            }
+        }
+    </script>
+</body>
+</html>

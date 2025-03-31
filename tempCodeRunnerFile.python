@@ -1,0 +1,48 @@
+import asyncio
+import base64
+import random
+import websockets
+import json
+import uuid
+
+async def websocket_client():
+    # Connect as test_user
+    tag = "test_user"
+    # token = str(random.randint(0, 999999)) # Matches our dummy validation
+    token = "2" # Matches our dummy validation
+    
+    uri = f"ws://localhost:8000/ws/{tag}/{token}/"
+    
+    async with websockets.connect(uri) as websocket:
+        print(f"Connected as {tag}")
+        
+        # Listen for messages
+        async def listen():
+            while True:
+                message = await websocket.recv()
+                print(f"Received: {message}")
+                c = base64.b64decode(eval(message)["content"])
+                print(f"Received: {c}")
+                print(f"Received: {c.decode('utf-8')}")
+        
+        listener = asyncio.create_task(listen())
+        
+        # Send a test message through HTTP endpoint
+        import requests
+        c = base64.b64encode("Hello from Python!".encode('utf-8')).decode('utf-8')
+        print(c)
+        response = requests.post(
+            "http://localhost:8000/api/send_message/",
+            json={
+                "sender": "test_user",
+                "receiver": "test_user_js",
+                "content": c,
+                "token": "dummy_token_test_user"
+            }
+        )
+        print("Message sent, response:", response.json())
+        
+        # Keep connection open
+        await asyncio.Future()
+
+asyncio.get_event_loop().run_until_complete(websocket_client())

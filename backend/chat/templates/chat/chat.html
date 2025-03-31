@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        // Inline script that runs immediately
+        document.documentElement.style.visibility = 'hidden';
+        (function() {
+          const darkMode = localStorage.getItem('darkMode') === 'enabled';
+          if (darkMode) {
+            document.documentElement.classList.add('dark-mode');
+          }
+          setTimeout(function() {
+            document.documentElement.style.visibility = '';
+          }, 100);
+        })();
+      </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Layout</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}"></style>
+    <script type="module">
+        import * as api from "{% static 'chat/js/api.js' %}";
+        window.App = window.App || {};
+        window.App.api = api;
+    </script>
+    <script type="module">
+        import * as ws from "{% static 'chat/js/ws.js' %}";
+        window.App = window.App || {};
+        window.App.ws = ws;
+    </script>
+    <script type="module">
+        import * as cryp from "{% static 'chat/js/cryp.js' %}";
+        window.App = window.App || {};
+        window.App.cryp = cryp;
+    </script>
+</head>
+<body>
+    <!-- Top Container (C) -->
+    <div class="top-container">
+        <!-- People list takes up this space but is actually part of main container -->
+        <!-- <div class="placeholder" style="width: 250px; background-color: #f5f5f5; border-right: 1px solid #ddd;"></div> -->
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Enter user tag..." id="tagSearch">
+        </div>
+        
+        <!-- C: Chat header -->
+        <div class="chat-header" id="chatter_header">
+            <div id="chatter_pic" style="display: none;" class="profile-pic">
+                <img id="chatter_img" src="/api/user_image/a/">
+            </div>
+            <span id="chatter_name" style="margin-left: 10px;"></span>
+        </div>
+    </div>
+    
+    <!-- Main Container (A & D) -->
+    <div class="main-container">
+        <!-- A: People list -->
+        <div id="people_list" class="people-list">
+            <!-- <div class="person">
+                <div class="profile-pic">
+                    <img src="/api/placeholder/40/40" alt="John">
+                </div>
+                <span>John Smith</span>
+            </div> -->
+        </div>
+        
+        <!-- D: Messages area -->
+        <div id="msgArea" class="messages-area">
+            <!-- <div class="message received">
+                Hey there! How are you doing today?
+            </div>
+            <div class="message sent">
+                I'm doing great! Just finishing up some work. How about you?
+            </div> -->
+        </div>
+    </div>
+    
+    <!-- Bottom Container (B & E) -->
+    <div class="bottom-container">
+        <!-- B: User info -->
+        <div class="user-info">
+            <div class="user-profile">
+                <div class="profile-pic">
+                    <img id="selfImg" src="/api/user_image/a/" alt="You">
+                </div>
+                <div id="selfName" class="user-name"></div>
+            </div>
+            <div class="settings-container">
+                <div class="theme-toggle">🌓</div>
+                <div class="settings-icon">⚙️</div>
+            </div>
+        </div>
+        
+        <!-- E: Input area -->
+        <div class="input-container">
+            <input id="msgBox" type="text" class="input-field" placeholder="Type a message...">
+        </div>
+    </div>
+
+    <script>
+
+        async function focus_chatter(tag) {
+            const ret = await window.App.api.getUser(tag);
+            const d = ret;
+            sessionStorage.setItem("tag", d.tag)
+            sessionStorage.setItem("nickname", d.nickname)
+            sessionStorage.setItem("public_key", d.public_key)
+
+            document.getElementById('chatter_pic').style = '';
+            document.getElementById('chatter_img').src = `/api/user_image/${d.tag}/`;
+            document.getElementById('chatter_img').alt = tag;
+            document.getElementById('chatter_header').title = tag;
+            document.getElementById('chatter_name').textContent = `${d.nickname}`;
+            
+            const tag_s = localStorage.getItem('tag');
+            const token = localStorage.getItem('token')
+            const private_key = localStorage.getItem("private_key");
+            const msgs = await window.App.api.getMessages(tag_s, d.tag, token, private_key)
+            // console.log(msgs);
+            var parentDiv = document.getElementById('msgArea');
+            parentDiv.innerHTML = ''
+            for (const entry of msgs) {
+                parentDiv.innerHTML += `
+                <div class="message ${entry.sender === tag_s ? 'sent' : 'received'}">
+                ${entry.content}
+                </div>
+                `
+            }
+            const m = document.getElementById("msgArea")
+            m.scrollTop = m.scrollHeight;
+
+        }
+        // Scroll to top of contacts list when page loads
+        async function authenticateUser(tag, token) {
+            const url = '/api/auth_me/';
+            const data = {
+                tag: tag,
+                token: token
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                console.log('Authentication successful:', result);
+                // Handle successful authentication
+                return true;
+                } else {
+                console.error('Authentication failed:', result.message);
+                // Handle error
+                return false;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                return false;
+            }
+        };
+
+        function setTheme() {
+            // Check if dark mode is enabled in localStorage
+            const darkMode = localStorage.getItem('darkMode') === 'enabled';
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            // Apply theme based on localStorage value
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌓';
+            }
+        }
+        
+        // Function to toggle theme
+        function toggleTheme() {
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                // Switch to light mode
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'disabled');
+                themeToggle.textContent = '🌓';
+            } else {
+                // Switch to dark mode
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+                themeToggle.textContent = '☀️';
+            }
+        }
+
+        async function refreshChatList() {
+            const tag = localStorage.getItem("tag")
+            const token = localStorage.getItem("token")
+            const chats_ret = await window.App.api.getRecentChats(tag, token);
+            const chats = await chats_ret.json();
+            console.log(chats)
+            var parentDiv = document.getElementById('people_list');
+            parentDiv.innerHTML = ''
+            for (const entry of chats) {
+                parentDiv.innerHTML += `
+                    <div class="person" onclick="focus_chatter('${entry.tag}', '${entry.nickname}')">
+                        <div class="profile-pic">
+                            <img src="/api/user_image/${entry.tag}/" alt="${entry.tag}">
+                        </div>
+                        <span>${entry.nickname}</span>
+                    </div>
+                `;
+
+            }
+        }
+
+        function connectWebSocket() {
+            const tag = localStorage.getItem("tag");
+            const token = localStorage.getItem("token");
+            const socket = window.App.ws.createWS(tag, token);
+            return socket;
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            sessionStorage.clear();
+            const tag = localStorage.getItem("tag");
+            const token = localStorage.getItem("token");
+            if (tag === null || token === null) {
+                localStorage.removeItem("tag")
+                localStorage.removeItem("token")
+                console.log("Missing tag or token")
+                console.log(`${tag} ${token}`)
+                window.location.href = '/failed_auth';
+            }
+            const authed = await authenticateUser(tag, token);
+            if (!authed) {
+                localStorage.removeItem("tag")
+                localStorage.removeItem("token")
+                window.location.href = '/failed_auth';
+            }
+            const peopleList = document.querySelector('.people-list');
+            peopleList.scrollTop = 0;
+
+            refreshChatList();
+
+
+
+            const simg = document.getElementById("selfImg");
+            const sname = document.getElementById("selfName");
+            const nn = localStorage.getItem("nickname");
+            sname.innerHTML = nn ? nn : localStorage.getItem("tag")
+            simg.src = `/api/user_image/${tag}/`
+
+            const socket = connectWebSocket();
+            socket.onmessage = async function(event) {
+                const tag = localStorage.getItem("tag");
+                const privateKey = localStorage.getItem("private_key");
+                const data = JSON.parse(event.data);
+                console.log("Raw received:", data);
+                var parentDiv = document.getElementById('msgArea');
+                const to = decodeURIComponent(escape(atob(data.content_to)));
+                const from = decodeURIComponent(escape(atob(data.content_from)));
+                var content = '';
+                if (data.sender === tag) {
+                    content = await window.App.cryp.decryptMessage(from, privateKey)
+                    parentDiv.innerHTML += `
+                    <div class="message ${data.sender === tag ? 'sent' : 'received'}">
+                    ${content}
+                    </div>
+                    `
+                } else if (data.sender === sessionStorage.getItem("tag")) {
+                    content = await window.App.cryp.decryptMessage(to, privateKey)
+                    parentDiv.innerHTML += `
+                    <div class="message ${data.sender === tag ? 'sent' : 'received'}">
+                    ${content}
+                    </div>
+                    `
+                }
+                refreshChatList()
+                
+            }
+            socket.onopen = function() {
+                console.log("WebSocket connected");
+            };
+            socket.onclose = function() {
+                console.log("WebSocket disconnected");
+            };
+        });
+        
+        // Example settings redirection
+        document.querySelector('.settings-icon').addEventListener('click', function() {
+            // alert('Redirecting to settings page...');
+            window.location.href = '/settings';
+        });
+        
+        // Dark mode toggle
+        function setTheme() {
+            // Check if dark mode is enabled in localStorage
+            const darkMode = localStorage.getItem('darkMode') === 'enabled';
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            // Apply theme based on localStorage value
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌓';
+            }
+        }
+        
+        // Function to toggle theme
+        function toggleTheme() {
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                // Switch to light mode
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'disabled');
+                themeToggle.textContent = '🌓';
+            } else {
+                // Switch to dark mode
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+                themeToggle.textContent = '☀️';
+            }
+        }
+        setTheme()
+        document.querySelector('.theme-toggle').addEventListener('click', toggleTheme)
+        document.getElementById('tagSearch').addEventListener('keypress', async function(event) {
+            if (event.key === 'Enter') {
+                const v = this.value;
+                if (v.trim() !== '') {
+                    const ret = await window.App.api.getUser(v.trim());
+                    // const d = await ret.json();
+                    const d  = ret;
+                    await focus_chatter(d.tag)
+                }
+                this.value = ''
+            }
+            
+        });
+
+        document.getElementById('msgBox').addEventListener('keypress', async function(event) {
+            if (event.key === 'Enter') {
+                const v = this.value;
+                if (v.trim() === '') {
+                    return;
+                }
+                const tag_self = localStorage.getItem('tag')
+                const tag_other = sessionStorage.getItem('tag')
+                const token = localStorage.getItem('token')
+                if (!tag_self || !tag_other || !token) {
+                    return;
+                }
+                await window.App.api.sendMessage(tag_self, tag_other, v, token, localStorage.getItem("public_key"), sessionStorage.getItem("public_key"))
+                this.value = ''
+                const m = document.getElementById("msgArea")
+                m.scrollTop = m.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>

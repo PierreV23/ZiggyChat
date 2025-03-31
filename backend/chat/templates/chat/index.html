@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        // Inline script that runs immediately
+        document.documentElement.style.visibility = 'hidden';
+        (function() {
+          const darkMode = localStorage.getItem('darkMode') === 'enabled';
+          if (darkMode) {
+            document.documentElement.classList.add('dark-mode');
+          }
+          setTimeout(function() {
+            document.documentElement.style.visibility = '';
+          }, 100);
+        })();
+      </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #fff;
+            color: #333;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 28px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .nav-button {
+            padding: 15px 0;
+            background-color: #0084ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .nav-button:hover {
+            background-color: #0066cc;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #1f1f1f;
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .header {
+            background-color: #2c2c2c;
+            border-bottom-color: #444;
+        }
+
+        body.dark-mode .nav-button {
+            background-color: #0066cc;
+        }
+
+        body.dark-mode .nav-button:hover {
+            background-color: #0052a3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Navigation</h1>
+        <div class="theme-toggle">🌓</div>
+    </div>
+
+    <div class="container">
+        <h2 class="title">Choose a Destination</h2>
+        <div class="button-container">
+            <a href="/chat" class="nav-button">Chat</a>
+            <a href="/login" class="nav-button">Login</a>
+            <a href="/register" class="nav-button">Register</a>
+        </div>
+    </div>
+
+    <script>
+        // Set theme function
+        function setTheme() {
+            const darkMode = localStorage.getItem('darkMode') === 'enabled';
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌓';
+            }
+        }
+        
+        // Toggle theme function
+        function toggleTheme() {
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'disabled');
+                themeToggle.textContent = '🌓';
+            } else {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+                themeToggle.textContent = '☀️';
+            }
+        }
+        
+        // Apply theme on page load
+        setTheme();
+        
+        // Event listener for theme toggle
+        document.querySelector('.theme-toggle').addEventListener('click', toggleTheme);
+    </script>
+</body>
+</html>
