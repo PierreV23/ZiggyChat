@@ -45,6 +45,7 @@ dependencies:
       - idna==3.10
       - incremental==24.7.2
       - legacy-cgi==2.6.2
+      - pillow==11.1.0
       - psycopg2-binary==2.9.10
       - pyasn1==0.6.1
       - pyasn1-modules==0.4.2
@@ -58,4 +59,4 @@ dependencies:
       - txaio==23.1.1
       - typing-extensions==4.13.0
       - zope-interface==7.2
-prefix: /home/pierrevwslu/miniconda/envs/school_env
+prefix: /home/pierrewsl/miniconda/envs/school_env
